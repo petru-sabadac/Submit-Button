@@ -11,6 +11,7 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import android.widget.TextView
+import kotlin.reflect.KMutableProperty0
 
 class SubmitButtonAnimation @JvmOverloads constructor(
     context: Context,
@@ -20,9 +21,6 @@ class SubmitButtonAnimation @JvmOverloads constructor(
     TextView(context, attrs, defStyleAttr), View.OnClickListener {
 
     val alphaProperty = "alpha"
-    val colorRedProperty = "red"
-    val colorGreenProperty = "green"
-    val colorBlueProperty = "blue"
     val widthProperty = "width"
     val ringProperty = "ring"
     val angleProperty = "angle"
@@ -43,7 +41,7 @@ class SubmitButtonAnimation @JvmOverloads constructor(
     private val bitmapCanvas = Canvas(bitmap)
 
     private var ringColor = ContextCompat.getColor(context, R.color.animColor)
-    private var buttonTextColor = Color.argb(colorMaxValue, 25, 204, 149)
+    private var buttonTextColor = ContextCompat.getColor(context, R.color.animColor)
 
     private val animationDuration = 500L
     private var isRunning = false
@@ -74,46 +72,62 @@ class SubmitButtonAnimation @JvmOverloads constructor(
         }
     }
 
-    private fun fillButtonBefore(): ValueAnimator {
+    private fun fillButtonBefore(): AnimatorSet {
         val alphaPropertyHolder = PropertyValuesHolder.ofInt(alphaProperty, colorMaxValue, 0)
-        val redPropertyHolder = PropertyValuesHolder.ofInt(colorRedProperty, 25, colorMaxValue)
-        val greenPropertyHolder = PropertyValuesHolder.ofInt(colorGreenProperty, 204, colorMaxValue)
-        val bluePropertyHolder = PropertyValuesHolder.ofInt(colorBlueProperty, 149, colorMaxValue)
-        val valueAnimator = ValueAnimator()
-        valueAnimator.duration = animationDuration
-        valueAnimator.setValues(alphaPropertyHolder, redPropertyHolder, greenPropertyHolder, bluePropertyHolder)
-        valueAnimator.interpolator = LinearInterpolator()
-        valueAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
+        val alfaAnimator = ValueAnimator()
+        alfaAnimator.duration = animationDuration
+        alfaAnimator.setValues(alphaPropertyHolder)
+        alfaAnimator.interpolator = LinearInterpolator()
+        alfaAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
             override fun onAnimationUpdate(animation: ValueAnimator?) {
                 alpha = animation?.getAnimatedValue(alphaProperty) as Int
-                buttonTextColor = Color.argb(
-                    colorMaxValue,
-                    animation?.getAnimatedValue(colorRedProperty) as Int,
-                    animation?.getAnimatedValue(colorGreenProperty) as Int,
-                    animation?.getAnimatedValue(colorBlueProperty) as Int
-                )
                 invalidate()
             }
         })
+        val colorAnimator = getColorAnimator(
+            animationDuration,
+            ContextCompat.getColor(context, R.color.animColor),
+            Color.WHITE,
+            ::buttonTextColor
+        )
+        val animatorSet = AnimatorSet()
+        animatorSet.playTogether(alfaAnimator, colorAnimator)
+
+        return animatorSet
+    }
+
+    private fun getColorAnimator(
+        duration: Long,
+        fromColor: Int,
+        toColor: Int,
+        affectedProperty: KMutableProperty0<Int>
+    ): ValueAnimator {
+        val valueAnimator = ValueAnimator()
+        valueAnimator.interpolator = LinearInterpolator()
+        valueAnimator.setIntValues(fromColor, toColor)
+        val argbEvaluator = ArgbEvaluator()
+        valueAnimator.setEvaluator(argbEvaluator)
+        valueAnimator.duration = duration
+        valueAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
+            override fun onAnimationUpdate(animation: ValueAnimator?) {
+                affectedProperty.set(animation?.animatedValue as Int)
+                invalidate()
+            }
+        })
+
         return valueAnimator
     }
 
-    private fun shrinkButton(): ValueAnimator {
+    private fun shrinkButton(): AnimatorSet {
         val alphaPropertyHolder = PropertyValuesHolder.ofInt(alphaProperty, 0, colorMaxValue)
         val widthPropertyHolder = PropertyValuesHolder.ofInt(widthProperty, maxButtonWidth, minButtonWidth)
         val ringPropertyHolder = PropertyValuesHolder.ofInt(ringProperty, minRingSize, maxRingSize)
-        val redPropertyHolder = PropertyValuesHolder.ofInt(colorRedProperty, 25, 187)
-        val greenPropertyHolder = PropertyValuesHolder.ofInt(colorGreenProperty, 204, 187)
-        val bluePropertyHolder = PropertyValuesHolder.ofInt(colorBlueProperty, 149, 187)
         val valueAnimator = ValueAnimator()
         valueAnimator.duration = animationDuration
         valueAnimator.setValues(
             widthPropertyHolder,
             ringPropertyHolder,
-            alphaPropertyHolder,
-            redPropertyHolder,
-            greenPropertyHolder,
-            bluePropertyHolder
+            alphaPropertyHolder
         )
         valueAnimator.interpolator = AccelerateDecelerateInterpolator()
         valueAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
@@ -122,16 +136,19 @@ class SubmitButtonAnimation @JvmOverloads constructor(
                 buttonTextColor = Color.argb(colorMaxValue - alpha, colorMaxValue, colorMaxValue, colorMaxValue)
                 buttonWidth = animation?.getAnimatedValue(widthProperty) as Int
                 ringSize = animation?.getAnimatedValue(ringProperty) as Int
-                ringColor = Color.argb(
-                    colorMaxValue,
-                    animation?.getAnimatedValue(colorRedProperty) as Int,
-                    animation?.getAnimatedValue(colorGreenProperty) as Int,
-                    animation?.getAnimatedValue(colorBlueProperty) as Int
-                )
                 invalidate()
             }
         })
-        return valueAnimator
+        val colorAnimator = getColorAnimator(
+            animationDuration,
+            ContextCompat.getColor(context, R.color.animColor),
+            ContextCompat.getColor(context, R.color.ringBackground),
+            ::ringColor
+        )
+        val animatorSet = AnimatorSet()
+        animatorSet.playTogether(valueAnimator, colorAnimator)
+
+        return animatorSet
     }
 
     private fun ringFill(): ValueAnimator {
@@ -208,7 +225,6 @@ class SubmitButtonAnimation @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas?) {
-
 
         bitmapCanvas.save()
         bitmapCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
