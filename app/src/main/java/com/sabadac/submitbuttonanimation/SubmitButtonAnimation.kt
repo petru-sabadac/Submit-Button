@@ -24,11 +24,13 @@ class SubmitButtonAnimation @JvmOverloads constructor(
     val widthProperty = "width"
     val ringProperty = "ring"
     val angleProperty = "angle"
+    val cornerRadiusProperty = "radius"
 
+    private val minCornerRadius = 12
     private val minRingSize = 2
     private val maxRingSize = 4
-    private val maxButtonWidth = 191
-    private val minButtonWidth = 63
+    private val maxButtonWidth = 240
+    private val minButtonWidth = 52
     private val colorMaxValue = 255
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -51,6 +53,7 @@ class SubmitButtonAnimation @JvmOverloads constructor(
     private var buttonWidth = maxButtonWidth
     private var buttonHeight = minButtonWidth
     private var ringSize = minRingSize
+    private var cornerRadius = minCornerRadius
 
     init {
         this.setOnClickListener(this)
@@ -122,12 +125,15 @@ class SubmitButtonAnimation @JvmOverloads constructor(
         val alphaPropertyHolder = PropertyValuesHolder.ofInt(alphaProperty, 0, colorMaxValue)
         val widthPropertyHolder = PropertyValuesHolder.ofInt(widthProperty, maxButtonWidth, minButtonWidth)
         val ringPropertyHolder = PropertyValuesHolder.ofInt(ringProperty, minRingSize, maxRingSize)
+        val cornerRadiusPropertyHolder =
+            PropertyValuesHolder.ofInt(cornerRadiusProperty, minCornerRadius, minButtonWidth)
         val valueAnimator = ValueAnimator()
         valueAnimator.duration = animationDuration
         valueAnimator.setValues(
             widthPropertyHolder,
             ringPropertyHolder,
-            alphaPropertyHolder
+            alphaPropertyHolder,
+            cornerRadiusPropertyHolder
         )
         valueAnimator.interpolator = AccelerateDecelerateInterpolator()
         valueAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
@@ -136,6 +142,7 @@ class SubmitButtonAnimation @JvmOverloads constructor(
                 buttonTextColor = Color.argb(colorMaxValue - alpha, colorMaxValue, colorMaxValue, colorMaxValue)
                 buttonWidth = animation?.getAnimatedValue(widthProperty) as Int
                 ringSize = animation?.getAnimatedValue(ringProperty) as Int
+                cornerRadius = animation?.getAnimatedValue(cornerRadiusProperty) as Int
                 invalidate()
             }
         })
@@ -176,9 +183,16 @@ class SubmitButtonAnimation @JvmOverloads constructor(
         val alphaPropertyHolder = PropertyValuesHolder.ofInt(alphaProperty, colorMaxValue, 0)
         val widthPropertyHolder = PropertyValuesHolder.ofInt(widthProperty, minButtonWidth, maxButtonWidth)
         val ringPropertyHolder = PropertyValuesHolder.ofInt(ringProperty, maxRingSize, minRingSize)
+        val cornerRadiusPropertyHolder =
+            PropertyValuesHolder.ofInt(cornerRadiusProperty, minButtonWidth, minCornerRadius)
         val valueAnimator = ValueAnimator()
         valueAnimator.duration = animationDuration
-        valueAnimator.setValues(widthPropertyHolder, ringPropertyHolder, alphaPropertyHolder)
+        valueAnimator.setValues(
+            widthPropertyHolder,
+            ringPropertyHolder,
+            alphaPropertyHolder,
+            cornerRadiusPropertyHolder
+        )
         valueAnimator.interpolator = DecelerateInterpolator()
         valueAnimator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationStart(animation: Animator?) {
@@ -191,7 +205,7 @@ class SubmitButtonAnimation @JvmOverloads constructor(
                 buttonWidth = animation?.getAnimatedValue(widthProperty) as Int
                 ringSize = animation?.getAnimatedValue(ringProperty) as Int
                 alpha = animation?.getAnimatedValue(alphaProperty) as Int
-//                innerAlpha = alpha
+                cornerRadius = animation?.getAnimatedValue(cornerRadiusProperty) as Int
                 doneBitmapAlpha = colorMaxValue - alpha
                 invalidate()
             }
@@ -237,8 +251,8 @@ class SubmitButtonAnimation @JvmOverloads constructor(
         buttonRectF.bottom = (bitmap.height + dpToPx(buttonHeight, context)) / 2f
         bitmapCanvas.drawRoundRect(
             buttonRectF,
-            dpToPx(buttonHeight / 2, context),
-            dpToPx(buttonHeight / 2, context),
+            dpToPx(cornerRadius / 2, context),
+            dpToPx(cornerRadius / 2, context),
             paint
         )
 
@@ -260,8 +274,8 @@ class SubmitButtonAnimation @JvmOverloads constructor(
         buttonRectF.bottom = (bitmap.height + dpToPx(buttonHeight - 2 * ringSize, context)) / 2f
         bitmapCanvas.drawRoundRect(
             buttonRectF,
-            dpToPx(buttonHeight / 2 - ringSize, context),
-            dpToPx(buttonHeight / 2 - ringSize, context),
+            dpToPx(cornerRadius / 2 - ringSize, context),
+            dpToPx(cornerRadius / 2 - ringSize, context),
             paint
         )
 
