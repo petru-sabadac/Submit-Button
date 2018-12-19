@@ -10,13 +10,14 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
+import android.widget.TextView
 
 class SubmitButtonAnimation @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) :
-    View(context, attrs, defStyleAttr), View.OnClickListener {
+    TextView(context, attrs, defStyleAttr), View.OnClickListener {
 
     val alphaProperty = "alpha"
     val colorRedProperty = "red"
@@ -30,7 +31,6 @@ class SubmitButtonAnimation @JvmOverloads constructor(
     private val maxRingSize = 4
     private val maxButtonWidth = 191
     private val minButtonWidth = 63
-    private val textSize = 15
     private val colorMaxValue = 255
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -43,8 +43,7 @@ class SubmitButtonAnimation @JvmOverloads constructor(
     private val bitmapCanvas = Canvas(bitmap)
 
     private var ringColor = ContextCompat.getColor(context, R.color.animColor)
-    private var textColor = Color.argb(colorMaxValue, 25, 204, 149)
-    private val textBounds = Rect()
+    private var buttonTextColor = Color.argb(colorMaxValue, 25, 204, 149)
 
     private val animationDuration = 500L
     private var isRunning = false
@@ -87,7 +86,7 @@ class SubmitButtonAnimation @JvmOverloads constructor(
         valueAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
             override fun onAnimationUpdate(animation: ValueAnimator?) {
                 alpha = animation?.getAnimatedValue(alphaProperty) as Int
-                textColor = Color.argb(
+                buttonTextColor = Color.argb(
                     colorMaxValue,
                     animation?.getAnimatedValue(colorRedProperty) as Int,
                     animation?.getAnimatedValue(colorGreenProperty) as Int,
@@ -120,6 +119,7 @@ class SubmitButtonAnimation @JvmOverloads constructor(
         valueAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
             override fun onAnimationUpdate(animation: ValueAnimator?) {
                 alpha = animation?.getAnimatedValue(alphaProperty) as Int
+                buttonTextColor = Color.argb(colorMaxValue - alpha, colorMaxValue, colorMaxValue, colorMaxValue)
                 buttonWidth = animation?.getAnimatedValue(widthProperty) as Int
                 ringSize = animation?.getAnimatedValue(ringProperty) as Int
                 ringColor = Color.argb(
@@ -166,7 +166,7 @@ class SubmitButtonAnimation @JvmOverloads constructor(
         valueAnimator.addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationStart(animation: Animator?) {
                 super.onAnimationStart(animation)
-                textColor = Color.argb(0, colorMaxValue, colorMaxValue, colorMaxValue)
+                buttonTextColor = Color.argb(0, colorMaxValue, colorMaxValue, colorMaxValue)
             }
         })
         valueAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
@@ -200,7 +200,7 @@ class SubmitButtonAnimation @JvmOverloads constructor(
             override fun onAnimationUpdate(animation: ValueAnimator?) {
                 alpha = animation?.getAnimatedValue(alphaProperty) as Int
                 doneBitmapAlpha = colorMaxValue - alpha
-                textColor = Color.argb(alpha, 25, 204, 149)
+                buttonTextColor = Color.argb(alpha, 25, 204, 149)
                 invalidate()
             }
         })
@@ -208,7 +208,7 @@ class SubmitButtonAnimation @JvmOverloads constructor(
     }
 
     override fun onDraw(canvas: Canvas?) {
-        super.onDraw(canvas)
+
 
         bitmapCanvas.save()
         bitmapCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
@@ -249,18 +249,6 @@ class SubmitButtonAnimation @JvmOverloads constructor(
             paint
         )
 
-        // Draw text
-        paint.color = textColor
-        paint.textSize = spToPx(textSize, context)
-        paint.typeface = Typeface.DEFAULT_BOLD
-        paint.getTextBounds("Submit", 0, "Submit".length, textBounds)
-        bitmapCanvas.drawText(
-            "Submit",
-            (bitmap.width - textBounds.width()) / 2f,
-            (bitmap.height + textBounds.height()) / 2f,
-            paint
-        )
-
         bitmapCanvas.restore()
 
         paint.color = Color.TRANSPARENT
@@ -268,6 +256,10 @@ class SubmitButtonAnimation @JvmOverloads constructor(
         canvas?.drawBitmap(bitmap, (width - bitmap.width) / 2f, (height - bitmap.height) / 2f, paint)
         paint.alpha = doneBitmapAlpha
         canvas?.drawBitmap(doneBitmap, (width - doneBitmap.width) / 2f, (height - doneBitmap.height) / 2f, paint)
+
+        // Draw text
+        setTextColor(buttonTextColor)
+        super.onDraw(canvas)
     }
 
     private fun dpToPx(dp: Int, context: Context): Float =
