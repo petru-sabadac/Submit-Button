@@ -26,11 +26,11 @@ class SubmitButtonAnimation @JvmOverloads constructor(
     val angleProperty = "angle"
     val cornerRadiusProperty = "radius"
 
-    private val minCornerRadius = 12
-    private val minRingSize = 2
-    private val maxRingSize = 4
-    private val maxButtonWidth = 240
-    private val minButtonWidth = 52
+    private val minCornerRadius = 70
+    private val minRingSize = 3
+    private val maxRingSize = 6
+    private val maxButtonWidth = 300
+    private val minButtonWidth = 70
     private val colorMaxValue = 255
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
