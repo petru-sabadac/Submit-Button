@@ -78,7 +78,7 @@ class SubmitButtonAnimation @JvmOverloads constructor(
     private fun fillButtonBefore(): ValueAnimator? {
         val colorAnimator =
             ValueAnimator.ofObject(ArgbEvaluator(), ContextCompat.getColor(context, R.color.animColor), Color.WHITE)
-        colorAnimator.duration = animationDuration
+        colorAnimator.duration = animationDuration / 2
         colorAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
             override fun onAnimationUpdate(animation: ValueAnimator?) {
                 alpha = (colorMaxValue - (animation!!.animatedFraction * colorMaxValue)).toInt()
@@ -91,8 +91,8 @@ class SubmitButtonAnimation @JvmOverloads constructor(
     }
 
     private fun textBounce(): ValueAnimator? {
-        val textValueAnimator = ValueAnimator.ofFloat(20f, 18f, 20f)
-        textValueAnimator.duration = animationDuration
+        val textValueAnimator = ValueAnimator.ofFloat(22f, 18f, 22f)
+        textValueAnimator.duration = animationDuration / 2
         textValueAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
             override fun onAnimationUpdate(animation: ValueAnimator?) {
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, animation?.animatedValue as Float)

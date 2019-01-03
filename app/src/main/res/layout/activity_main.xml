@@ -12,7 +12,7 @@
             android:layout_width="340dp"
             android:layout_height="100dp"
             android:text="@string/submit"
-            android:textSize="20sp"
+            android:textSize="22sp"
             android:textStyle="bold"
             android:gravity="center"
             app:layout_constraintBottom_toBottomOf="parent"
