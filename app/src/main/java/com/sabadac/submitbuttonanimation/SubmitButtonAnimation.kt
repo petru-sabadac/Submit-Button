@@ -2,6 +2,7 @@ package com.sabadac.submitbuttonanimation
 
 import android.animation.*
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.*
 import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
@@ -18,12 +19,6 @@ class SubmitButtonAnimation @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) :
     TextView(context, attrs, defStyleAttr), View.OnClickListener {
-
-    val alphaProperty = "alpha"
-    val widthProperty = "width"
-    val ringProperty = "ring"
-    val angleProperty = "angle"
-    val cornerRadiusProperty = "radius"
 
     private val minCornerRadius = 70
     private val minRingSize = 3
@@ -53,6 +48,7 @@ class SubmitButtonAnimation @JvmOverloads constructor(
     private var buttonHeight = minButtonWidth
     private var ringSize = minRingSize
     private var cornerRadius = minCornerRadius
+    private val animatorSet = AnimatorSet()
 
     init {
         this.setOnClickListener(this)
@@ -62,7 +58,7 @@ class SubmitButtonAnimation @JvmOverloads constructor(
         if (!isRunning) {
             isRunning = true
 
-            val animatorSet = AnimatorSet()
+
             animatorSet.playSequentially(
                 fillButtonBefore(),
                 textBounce(),
@@ -79,13 +75,11 @@ class SubmitButtonAnimation @JvmOverloads constructor(
         val colorAnimator =
             ValueAnimator.ofObject(ArgbEvaluator(), ContextCompat.getColor(context, R.color.animColor), Color.WHITE)
         colorAnimator.duration = animationDuration / 2
-        colorAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
-            override fun onAnimationUpdate(animation: ValueAnimator?) {
-                alpha = (colorMaxValue - (animation!!.animatedFraction * colorMaxValue)).toInt()
-                buttonTextColor = animation?.animatedValue as Int
-                invalidate()
-            }
-        })
+        colorAnimator.addUpdateListener { animation ->
+            alpha = (colorMaxValue - (animation.animatedFraction * colorMaxValue)).toInt()
+            buttonTextColor = animation.animatedValue as Int
+            invalidate()
+        }
 
         return colorAnimator
     }
@@ -93,12 +87,10 @@ class SubmitButtonAnimation @JvmOverloads constructor(
     private fun textBounce(): ValueAnimator? {
         val textValueAnimator = ValueAnimator.ofFloat(22f, 18f, 22f)
         textValueAnimator.duration = animationDuration / 2
-        textValueAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
-            override fun onAnimationUpdate(animation: ValueAnimator?) {
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, animation?.animatedValue as Float)
-                invalidate()
-            }
-        })
+        textValueAnimator.addUpdateListener { animation ->
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, animation.animatedValue as Float)
+            invalidate()
+        }
         return textValueAnimator
     }
 
@@ -110,19 +102,17 @@ class SubmitButtonAnimation @JvmOverloads constructor(
         )
         valueAnimator.duration = animationDuration
         valueAnimator.interpolator = AccelerateDecelerateInterpolator()
-        valueAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
-            override fun onAnimationUpdate(animation: ValueAnimator?) {
-                alpha = (0 + (animation!!.animatedFraction * colorMaxValue)).toInt()
-                buttonTextColor = Color.argb(colorMaxValue - alpha, colorMaxValue, colorMaxValue, colorMaxValue)
-                buttonWidth =
-                        (maxButtonWidth - animation!!.animatedFraction * (maxButtonWidth - minButtonWidth)).toInt()
-                ringSize = (minRingSize + animation!!.animatedFraction * (maxRingSize - minRingSize)).toInt()
-                cornerRadius =
-                        (minCornerRadius + animation!!.animatedFraction * (minButtonWidth - minCornerRadius)).toInt()
-                ringColor = animation?.animatedValue as Int
-                invalidate()
-            }
-        })
+        valueAnimator.addUpdateListener { animation ->
+            alpha = (0 + (animation.animatedFraction * colorMaxValue)).toInt()
+            buttonTextColor = Color.argb(colorMaxValue - alpha, colorMaxValue, colorMaxValue, colorMaxValue)
+            buttonWidth =
+                    (maxButtonWidth - animation.animatedFraction * (maxButtonWidth - minButtonWidth)).toInt()
+            ringSize = (minRingSize + animation.animatedFraction * (maxRingSize - minRingSize)).toInt()
+            cornerRadius =
+                    (minCornerRadius + animation.animatedFraction * (minButtonWidth - minCornerRadius)).toInt()
+            ringColor = animation.animatedValue as Int
+            invalidate()
+        }
 
         return valueAnimator
     }
@@ -137,12 +127,10 @@ class SubmitButtonAnimation @JvmOverloads constructor(
                 ringColor = ContextCompat.getColor(context, R.color.animColor)
             }
         })
-        valueAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
-            override fun onAnimationUpdate(animation: ValueAnimator?) {
-                angle = animation!!.animatedFraction * 360f
-                invalidate()
-            }
-        })
+        valueAnimator.addUpdateListener { animation ->
+            angle = animation.animatedFraction * 360f
+            invalidate()
+        }
         return valueAnimator
     }
 
@@ -156,18 +144,16 @@ class SubmitButtonAnimation @JvmOverloads constructor(
                 buttonTextColor = Color.argb(0, colorMaxValue, colorMaxValue, colorMaxValue)
             }
         })
-        valueAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
-            override fun onAnimationUpdate(animation: ValueAnimator?) {
-                buttonWidth =
-                        (minButtonWidth + animation!!.animatedFraction * (maxButtonWidth - minButtonWidth)).toInt()
-                ringSize = (maxRingSize - animation!!.animatedFraction * (maxRingSize - minRingSize)).toInt()
-                alpha = (colorMaxValue - animation!!.animatedFraction * colorMaxValue).toInt()
-                cornerRadius =
-                        (minCornerRadius + animation!!.animatedFraction * (minButtonWidth - minCornerRadius)).toInt()
-                doneBitmapAlpha = colorMaxValue - alpha
-                invalidate()
-            }
-        })
+        valueAnimator.addUpdateListener { animation ->
+            buttonWidth =
+                    (minButtonWidth + animation.animatedFraction * (maxButtonWidth - minButtonWidth)).toInt()
+            ringSize = (maxRingSize - animation.animatedFraction * (maxRingSize - minRingSize)).toInt()
+            alpha = (colorMaxValue - animation.animatedFraction * colorMaxValue).toInt()
+            cornerRadius =
+                    (minCornerRadius + animation.animatedFraction * (minButtonWidth - minCornerRadius)).toInt()
+            doneBitmapAlpha = colorMaxValue - alpha
+            invalidate()
+        }
         return valueAnimator
     }
 
@@ -183,14 +169,12 @@ class SubmitButtonAnimation @JvmOverloads constructor(
 
             }
         })
-        valueAnimator.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
-            override fun onAnimationUpdate(animation: ValueAnimator?) {
-                alpha = animation!!.animatedValue as Int
-                doneBitmapAlpha = colorMaxValue - alpha
-                buttonTextColor = Color.argb(alpha, 25, 204, 149)
-                invalidate()
-            }
-        })
+        valueAnimator.addUpdateListener { animation ->
+            alpha = animation.animatedValue as Int
+            doneBitmapAlpha = colorMaxValue - alpha
+            buttonTextColor = Color.argb(alpha, 25, 204, 149)
+            invalidate()
+        }
         return valueAnimator
     }
 
@@ -201,37 +185,37 @@ class SubmitButtonAnimation @JvmOverloads constructor(
 
         // Draw green/gray outside border
         paint.color = ringColor
-        buttonRectF.left = (bitmap.width - dpToPx(buttonWidth, context)) / 2f
-        buttonRectF.top = (bitmap.height - dpToPx(buttonHeight, context)) / 2f
-        buttonRectF.right = (bitmap.width + dpToPx(buttonWidth, context)) / 2f
-        buttonRectF.bottom = (bitmap.height + dpToPx(buttonHeight, context)) / 2f
+        buttonRectF.left = (bitmap.width - dpToPx(buttonWidth)) / 2f
+        buttonRectF.top = (bitmap.height - dpToPx(buttonHeight)) / 2f
+        buttonRectF.right = (bitmap.width + dpToPx(buttonWidth)) / 2f
+        buttonRectF.bottom = (bitmap.height + dpToPx(buttonHeight)) / 2f
         bitmapCanvas.drawRoundRect(
             buttonRectF,
-            dpToPx(cornerRadius / 2, context),
-            dpToPx(cornerRadius / 2, context),
+            dpToPx(cornerRadius / 2),
+            dpToPx(cornerRadius / 2),
             paint
         )
 
         // Draw rotating circle
         paint.color = ContextCompat.getColor(context, R.color.animColor)
         paint.alpha = if (ringSize == maxRingSize) colorMaxValue else 0
-        buttonRectF.left = (bitmap.width - dpToPx(buttonHeight, context)) / 2f
-        buttonRectF.top = (bitmap.height - dpToPx(buttonHeight, context)) / 2f
-        buttonRectF.right = (bitmap.width + dpToPx(buttonHeight, context)) / 2f
-        buttonRectF.bottom = (bitmap.height + dpToPx(buttonHeight, context)) / 2f
+        buttonRectF.left = (bitmap.width - dpToPx(buttonHeight)) / 2f
+        buttonRectF.top = (bitmap.height - dpToPx(buttonHeight)) / 2f
+        buttonRectF.right = (bitmap.width + dpToPx(buttonHeight)) / 2f
+        buttonRectF.bottom = (bitmap.height + dpToPx(buttonHeight)) / 2f
         bitmapCanvas.drawArc(buttonRectF, 270f, angle, true, paint)
 
         // Draw inner white
         paint.color = Color.WHITE
         paint.alpha = alpha
-        buttonRectF.left = (bitmap.width - dpToPx(buttonWidth - 2 * ringSize, context)) / 2f
-        buttonRectF.top = (bitmap.height - dpToPx(buttonHeight - 2 * ringSize, context)) / 2f
-        buttonRectF.right = (bitmap.width + dpToPx(buttonWidth - 2 * ringSize, context)) / 2f
-        buttonRectF.bottom = (bitmap.height + dpToPx(buttonHeight - 2 * ringSize, context)) / 2f
+        buttonRectF.left = (bitmap.width - dpToPx(buttonWidth - 2 * ringSize)) / 2f
+        buttonRectF.top = (bitmap.height - dpToPx(buttonHeight - 2 * ringSize)) / 2f
+        buttonRectF.right = (bitmap.width + dpToPx(buttonWidth - 2 * ringSize)) / 2f
+        buttonRectF.bottom = (bitmap.height + dpToPx(buttonHeight - 2 * ringSize)) / 2f
         bitmapCanvas.drawRoundRect(
             buttonRectF,
-            dpToPx(cornerRadius / 2 - ringSize, context),
-            dpToPx(cornerRadius / 2 - ringSize, context),
+            dpToPx(cornerRadius / 2 - ringSize),
+            dpToPx(cornerRadius / 2 - ringSize),
             paint
         )
 
@@ -248,6 +232,6 @@ class SubmitButtonAnimation @JvmOverloads constructor(
         super.onDraw(canvas)
     }
 
-    private fun dpToPx(dp: Int, context: Context): Float =
-        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp.toFloat(), context.resources.displayMetrics)
+    private fun dpToPx(dp: Int): Float =
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp.toFloat(), Resources.getSystem().displayMetrics)
 }
